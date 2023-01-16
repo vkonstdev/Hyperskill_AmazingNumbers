@@ -72,6 +72,24 @@ public class AmazingNumbers {
         return true;
     }
 
+    private boolean isHappy() {
+        long res = 0;
+        long current = number;
+        do {
+            String[] letters = String.valueOf(current).split("");
+            for (String letter : letters) {
+                res += Long.parseLong(letter) * Long.parseLong(letter);
+            }
+            current = res;
+            res = 0;
+        } while (current > 9);
+        return current == 1;
+    }
+
+    private boolean isSad() {
+        return !isHappy();
+    }
+
     public String formBooleanValues() {
         StringBuilder sb = new StringBuilder(this.number + " is ");
         sb.append(isBuzz() ? "buzz, " : "");
@@ -82,6 +100,8 @@ public class AmazingNumbers {
         sb.append(isSquare() ? "square, " : "");
         sb.append(isSunny() ? "sunny, " : "");
         sb.append(isJumping() ? "jumping, " : "");
+        sb.append(isHappy() ? "happy, " : "");
+        sb.append(isSad() ? "sad, " : "");
         sb.append(isEven() ? "even" : "odd");
 
         /*String out = String.join("", this.number + " is "
@@ -111,5 +131,7 @@ public class AmazingNumbers {
         System.out.println("       even: " + isEven());
         System.out.println("        odd: " + isOdd());
         System.out.println("    jumping: " + isJumping());
+        System.out.println("      happy: " + isHappy());
+        System.out.println("        sad: " + isSad());
     }
 }

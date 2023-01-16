@@ -6,7 +6,8 @@ import java.util.List;
 
 public class Request {
 
-    public static final String propertiesString = "Available properties: [BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY, EVEN, ODD, JUMPING]";
+    public static final String propertiesString = "Available properties: [BUZZ, DUCK, PALINDROMIC, GAPFUL, SPY, SQUARE, SUNNY, EVEN, ODD, JUMPING, HAPPY, SAD, -BUZZ, -DUCK, -PALINDROMIC, -GAPFUL, -SPY, -SQUARE, -SUNNY, -EVEN, -ODD, -JUMPING, -HAPPY, -SAD]";
+
     private final String[] params;
 
     public Request(String input) {
@@ -14,7 +15,7 @@ public class Request {
         switch (this.params.length) {
             case 1 -> oneNumber();
             case 2 -> listNumbers();
-            case 3 -> oneProperty();
+            //case 3 -> oneProperty();
             //case 4 -> twoProperties();
             default -> manyProperties();
         }
@@ -90,14 +91,18 @@ public class Request {
         long firstParam = getNumber(this.params[0]);
         long secondParam = getNumber(this.params[1]);
         String[] properties = Arrays.copyOfRange(params, 2, params.length);
+        ArrayList<String> propertiesList = new ArrayList<>(List.of(properties));
         List<String> rightProperties = new ArrayList<>();
+        List<String> excludeProperties = new ArrayList<>();
         List<String> wrongProperties = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
         for (String property : properties) {
-            if (isValidProperty(property)) {
-                rightProperties.add(property);
-            } else {
+            if (!isValidProperty(property)) {
                 wrongProperties.add(property);
+            } else if (isExcludeProperty(property)) {
+                excludeProperties.add(property);
+            } else {
+                rightProperties.add(property);
             }
         }
         if (wrongProperties.size() != 0) {
@@ -115,19 +120,24 @@ public class Request {
                 sb.append("] are wrong.");
                 System.out.println(sb);
                 System.out.println(propertiesString);
-                sb = null;
             }
-        } else if (firstParam >= 0 && secondParam > 0 && rightProperties.size() != 0 && !mutuallyExclusiveProperties(rightProperties)) {
+        } else if (firstParam >= 0 && secondParam > 0 && (rightProperties.size() != 0 || excludeProperties.size() != 0) && !mutuallyExclusiveProperties(propertiesList)) {
             AmazingNumbers an = new AmazingNumbers(firstParam);
             int count = 0;
             int countContains = 0;
             while (count < secondParam) {
+                String currentString = an.formBooleanValues();
                 for (String rightProperty : rightProperties) {
-                    if (an.formBooleanValues().contains(rightProperty)) {
+                    if (currentString.contains(rightProperty)) {
                         countContains++;
                     }
                 }
-                if (countContains == rightProperties.size()) {
+                for (String excludeProperty : excludeProperties) {
+                    if (!currentString.contains(excludeProperty.substring(1)) ) {
+                        countContains++;
+                    }
+                }
+                if (countContains == rightProperties.size() + excludeProperties.size()) {
                     System.out.println(an.formBooleanValues());
                     count++;
                 }
@@ -140,12 +150,46 @@ public class Request {
             System.out.println("The second parameter should be a natural number.");
         } else {
             sb.append("The request contains mutually exclusive properties: [");
-                if (rightProperties.contains("even") && rightProperties.contains("odd")) {
+                if (propertiesList.contains("even") && propertiesList.contains("odd")) {
                     sb.append("EVEN, ODD");
-                } else if (rightProperties.contains("duck") && rightProperties.contains("spy")) {
+                } else if (propertiesList.contains("-even") && propertiesList.contains("-odd")) {
+                    sb.append("-EVEN, -ODD");
+                } else if (propertiesList.contains("duck") && propertiesList.contains("spy")) {
                     sb.append("DUCK, SPY");
-                } else {
+                } else if (propertiesList.contains("-duck") && propertiesList.contains("-spy")) {
+                    sb.append("-DUCK, -SPY");
+                } else if (propertiesList.contains("happy") && propertiesList.contains("sad")) {
+                    sb.append("HAPPY, SAD");
+                } else if (propertiesList.contains("-happy") && propertiesList.contains("-sad")) {
+                    sb.append("-HAPPY, -SAD");
+                } else if (propertiesList.contains("square") && propertiesList.contains("sunny")) {
                     sb.append("SQUARE, SUNNY");
+                } else if (propertiesList.contains("-square") && propertiesList.contains("-sunny")) {
+                    sb.append("-SQUARE, -SUNNY");
+                } else if (propertiesList.contains("even") && propertiesList.contains("-even")) {
+                    sb.append("EVEN, -EVEN");
+                } else if (propertiesList.contains("odd") && propertiesList.contains("-odd")) {
+                    sb.append("ODD, -ODD");
+                } else if (propertiesList.contains("duck") && propertiesList.contains("-duck")) {
+                    sb.append("DUCK, -DUCK");
+                } else if (propertiesList.contains("spy") && propertiesList.contains("-spy")) {
+                    sb.append("SPY, -SPY");
+                } else if (propertiesList.contains("happy") && propertiesList.contains("-happy")) {
+                    sb.append("HAPPY, -HAPPY");
+                } else if (propertiesList.contains("sad") && propertiesList.contains("-sad")) {
+                    sb.append("SAD, -SAD");
+                } else if (propertiesList.contains("square") && propertiesList.contains("-square")) {
+                    sb.append("SQUARE, -SQUARE");
+                } else if (propertiesList.contains("sunny") && propertiesList.contains("-sunny")) {
+                    sb.append("SUNNY, -SUNNY");
+                } else if (propertiesList.contains("buzz") && propertiesList.contains("-buzz")) {
+                    sb.append("BUZZ, -BUZZ");
+                } else if (propertiesList.contains("palindromic") && propertiesList.contains("-palindromic")) {
+                    sb.append("PALINDROMIC, -PALINDROMIC");
+                } else if (propertiesList.contains("jumping") && propertiesList.contains("-jumping")) {
+                    sb.append("JUMPING, -JUMPING");
+                } else {
+                    sb.append("GAPFUL, -GAPFUL");
                 }
             sb.append("]");
             System.out.println(sb);
@@ -165,10 +209,31 @@ public class Request {
         return propertiesString.contains(input.toUpperCase());
     }
 
+    private boolean isExcludeProperty(String input) {
+        return input.toUpperCase().startsWith("-");
+    }
+
     private boolean mutuallyExclusiveProperties(List<String> props) {
         return props.contains("even") && props.contains("odd") ||
+               props.contains("-even") && props.contains("-odd") ||
                props.contains("duck") && props.contains("spy") ||
-               props.contains("square") && props.contains("sunny");
+               props.contains("-duck") && props.contains("-spy") ||
+               props.contains("square") && props.contains("sunny") ||
+               props.contains("-square") && props.contains("-sunny") ||
+               props.contains("happy") && props.contains("sad") ||
+               props.contains("-happy") && props.contains("-sad") ||
+               props.contains("even") && props.contains("-even") ||
+               props.contains("odd") && props.contains("-odd") ||
+               props.contains("duck") && props.contains("-duck") ||
+               props.contains("spy") && props.contains("-spy") ||
+               props.contains("square") && props.contains("-square") ||
+               props.contains("sunny") && props.contains("-sunny") ||
+               props.contains("happy") && props.contains("-happy") ||
+               props.contains("sad") && props.contains("-sad") ||
+               props.contains("buzz") && props.contains("-buzz") ||
+               props.contains("palindromic") && props.contains("-palindromic") ||
+               props.contains("jumping") && props.contains("-jumping") ||
+               props.contains("gapful") && props.contains("-gapful");
 
         /*return "even".equals(this.params[2]) && "odd".equals(this.params[3]) ||
                "odd".equals(this.params[2]) && "even".equals(this.params[3]) ||
